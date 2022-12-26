@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Step Counter</string>
+    <string name="history_item_placeholder">placeholder</string>
+    <string name="clear_history_title">Clear History</string>
+    <string name="location_notifiaction_string">Location-triggered Walk Notification 📍</string>
+    <string name="location_notification_message">Go for a walk.</string>
+    <string name="time_notification_title">Time-triggered Walk Notification ⏰</string>
+    <string name="time_notification_message">Go for a walk.</string>
+    <string name="weather_notfication_message">Go for a walk</string>
+    <string name="weather_notification_title">Weather-triggered Walk Notification ☀️ </string>
+</resources>
