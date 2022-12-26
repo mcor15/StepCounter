@@ -2,9 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -31,7 +28,7 @@
             android:exported="true" />
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
-            android:value="${FENCE_API}" />
+            android:value="${FENCE_API_KEY}" />
         <receiver
             android:name=".TimeTriggeredReceiver"
             android:enabled="true"

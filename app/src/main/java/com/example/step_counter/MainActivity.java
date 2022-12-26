@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
 
-
+        Log.d("key",BuildConfig.FENCE_API_KEY);
         //Awareness Fence setup. If device enters or exits the fence, trigger.
         AwarenessFence locationFenceEnter = LocationFence.entering(loc1_lat, loc1_lon, 60);
         AwarenessFence locationFenceExit = LocationFence.exiting(loc1_lat, loc1_lon, 60);
