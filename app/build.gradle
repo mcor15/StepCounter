@@ -12,7 +12,7 @@ android {
         targetSdk 32
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [FENCE_API_KEY:"PLACEHOLDER"]
+        manifestPlaceholders = [AWARENESS_KEY:"PLACEHOLDER"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -100,5 +100,11 @@ dependencies {
 
     //Oxford step counter
     implementation 'com.github.Oxford-step-counter:Java-Step-Counter:-SNAPSHOT'
+
+}
+
+secrets {
+
+    propertiesFileName = "apikeys.properties"
 
 }

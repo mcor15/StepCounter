@@ -28,7 +28,7 @@
             android:exported="true" />
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
-            android:value="${FENCE_API_KEY}" />
+            android:value="${AWARENESS_KEY}" />
         <receiver
             android:name=".TimeTriggeredReceiver"
             android:enabled="true"
