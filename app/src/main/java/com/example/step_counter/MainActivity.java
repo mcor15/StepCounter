@@ -2,7 +2,9 @@ package com.example.step_counter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -40,6 +42,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int PERMISSIONS_REQUEST_OLDER = 1;
     private static final int PERMISSIONS_REQUEST_NEWER = 2;
     private static final int PERMISSIONS_REQUEST_NEWER_BACKGROUND = 3;
+    private static final int COUNTER_PERMISSIONS_REQUEST = 4;
 
     //Shared Preferences
     private SharedPreferences mPreferences;
@@ -105,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Button mHistoryButton;
     Button mAddButton;
     HistoryViewModel mHistoryViewModel;
+    SwitchCompat mCounterSwitch;
 
     //Fields for pedometer
     private SensorManager mSensorManager;
@@ -142,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //Get the Step Detector sensor for device, if it exists. Else, get accelerometer
         mSensorPedometer = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
-        if (mSensorPedometer == null) {
+       /* if (mSensorPedometer == null) {
             mSensorAccelerometer =mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             Toast.makeText(this,"No Step Sensor Detected. Using Oxford Sensor",Toast.LENGTH_LONG).show();
 
@@ -168,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 }
             });
-        }
+        }*/
 
         //Get History database ViewModel
         mHistoryViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
@@ -213,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //based on https://developer.android.com/training/permissions/requesting
         //https://stackoverflow.com/questions/41449652/activitycompat-requestpermissions
         //https://stackoverflow.com/questions/35484767/activitycompat-requestpermissions-not-showing-dialog-box
+        /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACTIVITY_RECOGNITION}, PERMISSIONS_REQUEST_NEWER);
 
@@ -232,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             //Get permissions for older Android OS
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_OLDER);
         }
+        */
 
 
 
@@ -245,42 +252,154 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            //Awareness Fence setup. If device enters or exits the fence, trigger.
+            AwarenessFence locationFenceEnter = LocationFence.entering(loc1_lat, loc1_lon, 60);
+            AwarenessFence locationFenceExit = LocationFence.exiting(loc1_lat, loc1_lon, 60);
+            AwarenessFence combinedFence = AwarenessFence.or(locationFenceEnter, locationFenceExit);
+            Intent fenceIntent = new Intent(this, AwarenessFenceReceiver.class);
+            PendingIntent fencePendingIntent = PendingIntent.getBroadcast(this, FENCE_ID, fenceIntent, PendingIntent.FLAG_UPDATE_CURRENT );
+
+            //Setup awareness fence listener
+            Awareness.getFenceClient(this).updateFences(new FenceUpdateRequest.Builder()
+                            .addFence(FENCE_KEY, combinedFence, fencePendingIntent)
+                            .build())
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.i("fence listener", "Fence was successfully registered.");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("fence listener", "Fence could not be registered: " + e);
+                        }
+                    });
+        }else{
+            //TODO
         }
 
 
 
-        //Awareness Fence setup. If device enters or exits the fence, trigger.
-        AwarenessFence locationFenceEnter = LocationFence.entering(loc1_lat, loc1_lon, 60);
-        AwarenessFence locationFenceExit = LocationFence.exiting(loc1_lat, loc1_lon, 60);
-        AwarenessFence combinedFence = AwarenessFence.or(locationFenceEnter, locationFenceExit);
-        Intent fenceIntent = new Intent(this, AwarenessFenceReceiver.class);
-        PendingIntent fencePendingIntent = PendingIntent.getBroadcast(this, FENCE_ID, fenceIntent, PendingIntent.FLAG_UPDATE_CURRENT );
+        mCounterSwitch = findViewById(R.id.counter_switch);
+        mCounterSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                //Counter is off, turn it on
+                if (isChecked){
+                    Log.d("CounterToggle","ON");
 
-        //Setup awareness fence listener
-        Awareness.getFenceClient(this).updateFences(new FenceUpdateRequest.Builder()
-                .addFence(FENCE_KEY, combinedFence, fencePendingIntent)
-                .build())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.i("fence listener", "Fence was successfully registered.");
+                    //restore steps?
+                    //Get the steps from the Shared Preferences and update steps UI
+                    mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+                    mCurrentSteps = mPreferences.getInt(STEPS_KEY, 0);
+                    Log.d("L_STEPS", Integer.toString(mCurrentSteps));
+                    mStepsText.setText(Integer.toString(mCurrentSteps));
+
+                    //request permission
+                    //create list of permissions to check
+                    String[] permins;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        permins = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION};
+                    }else{
+                        permins = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
                     }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("fence listener", "Fence could not be registered: " + e);
+
+                    //still needs to request all permissions
+                    boolean all_permissions_obtained = true;
+                    for (String permission : permins) {
+                        //if permission isn't granted, request it
+                        //if user says ok, start counter in onRequestPermissionsResult()
+                        if (!(ContextCompat.checkSelfPermission(compoundButton.getContext(), permission) == PackageManager.PERMISSION_GRANTED)) {
+                            all_permissions_obtained = false;
+                            ActivityCompat.requestPermissions(MainActivity.this, permins, COUNTER_PERMISSIONS_REQUEST);
+                        }
+
                     }
-                });
+                    //We have all permissions to start the counter. So, start(register) the step-counter
+                    if(all_permissions_obtained){
+                        if (mSensorPedometer == null) {
+                            lastSteps = 0;
+                            mSensorAccelerometer =mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+                            Toast.makeText(MainActivity.this,"No Step Sensor Detected. Using Oxford Sensor",Toast.LENGTH_LONG).show();
+
+                            //Setup Oxford step counter.
+                            //https://github.com/Oxford-step-counter
+                            oxfordCounter = new StepCounter(100);
+                            oxfordCounter.addOnStepUpdateListener(new StepCounter.OnStepUpdateListener() {
+                                //This works fine in the emulator but not with my phones.
+                                @Override
+                                public void onStepUpdate(int steps) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //Add steps
+                                            mCurrentSteps = mCurrentSteps + (steps-lastSteps);
+                                            lastSteps = steps;
+
+                                            //have to do it this way for some reason.
+                                            String str = Integer.toString(mCurrentSteps);
+                                            mStepsText.setText(str);
+                                        }
+                                    });
+
+                                }
+                            });
+                        }
+                        //Register step detector sensor
+                        if(mSensorPedometer != null) {
+                            mSensorManager.registerListener(MainActivity.this, mSensorPedometer, SensorManager.SENSOR_DELAY_FASTEST);
+                        }else if(mSensorAccelerometer != null){
+                            int periodusecs = (int) (1E6 / 100);
+                            mSensorManager.registerListener(accelerometerEventListener,mSensorAccelerometer,periodusecs);
+                        }
+                        //If using Oxford step counter, start it
+                        if(oxfordCounter != null){
+                            oxfordCounter.start();
+                        }
+                    }
+                }else{//Counter is running, turn it off
+
+                    Log.d("CounterToggle","Stop Toggle");
+
+                    //stop the counter and save steps
+
+                    //Unregister step counter sensor
+                    mSensorManager.unregisterListener(MainActivity.this);
+                    mSensorManager.unregisterListener(accelerometerEventListener);
+                    //stop Oxford step counter, if using it
+                    if(oxfordCounter != null){
+                        oxfordCounter.stop();
+                    }
+
+                    //Write today's steps to database
+                    MainActivity.this.mHistoryViewModel.doesDateExist(mCurrentDate).observe(MainActivity.this, new Observer<Boolean>() {
+                        @Override
+                        public void onChanged(Boolean aBoolean) {
+                            if(aBoolean){
+                                mHistoryViewModel.update(new Date(mCurrentDate, mCurrentSteps));
+                            }else{
+                                mHistoryViewModel.insert(new Date(mCurrentDate, mCurrentSteps));
+                            }
+                        }
+                    });
+
+                    //Save stuff
+                    SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+                    preferencesEditor.putString(DATE_KEY, mCurrentDate);
+                    preferencesEditor.putInt(STEPS_KEY, mCurrentSteps);
+                    Log.d("STEPS", Integer.toString(mCurrentSteps));
+                    preferencesEditor.apply();
+
+
+                    //reset the toggle
+                    //mCounterSwitch.setChecked(false);
+
+                }
+            }
+
+        });
 
 
         //Setup for transition to History activity
@@ -293,13 +412,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
+        //Setup for transition to Notifications activity
+        mHistoryButton = findViewById(R.id.notification_button);
+        mHistoryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), NotificationActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         //Midnight broadcast receiver setup. If the MainActivity is open when midnight hits, need save current steps and reset the steps UI.
         //So, setup midnight BroadcastReceiver to responds to Alarm
         midnightReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                //clear steps UI
+                //clear steps UI element
                 mStepsText.setText("0");
 
                 //write current steps to database
@@ -376,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onStart(){
         super.onStart();
         //Register step detector sensor
+        /*
         if(mSensorPedometer != null) {
             mSensorManager.registerListener(this, mSensorPedometer, SensorManager.SENSOR_DELAY_FASTEST);
         }else if(mSensorAccelerometer != null){
@@ -385,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //If using Oxford step counter, start it
         if(oxfordCounter != null){
             oxfordCounter.start();
-        }
+        }*/
     }
 
     @Override
@@ -576,10 +706,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    private void startStepCounter(View view){
+
+    }
+
     //Based on https://stackoverflow.com/questions/26449985/how-to-close-an-app-after-showing-a-dialog
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (int result: grantResults) {
+        if(requestCode == COUNTER_PERMISSIONS_REQUEST){
+            boolean all_permissions_granted = true;
+            for (int result: grantResults) {
+            Log.d("permin",Integer.toString(result));
+            if(result == PackageManager.PERMISSION_DENIED){
+                all_permissions_granted = false;
+                break;
+            }
+            /*
             if(result == PackageManager.PERMISSION_DENIED){
                 new AlertDialog.Builder(this)
                         .setTitle("Permissions Required")
@@ -588,9 +730,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             public void onClick(DialogInterface dialog, int which) {
                                 finish();
                             }}).show();
-            }
+            }*/
         }
+     }
     }
+
+
     }
 
 

@@ -34,12 +34,21 @@
         android:text="History" />
 
     <Button
-        android:id="@+id/history_button2"
+        android:id="@+id/notification_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:text="Notifications" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/counter_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/stepsText"
+        android:layout_centerHorizontal="true"
+        android:textSize="34sp"
+        android:text="Counter Off" />
 
 
 </RelativeLayout>

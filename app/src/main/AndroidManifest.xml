@@ -16,19 +16,29 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.StepCounter">
+        android:theme="@style/Theme.StepCounter"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".NotificationActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
         <receiver
             android:name=".WeatherTriggeredReceiver"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
         <receiver
             android:name=".AwarenessFenceReceiver"
             android:enabled="true"
             android:exported="true" />
+
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
             android:value="${AWARENESS_KEY}" />
+
         <receiver
             android:name=".TimeTriggeredReceiver"
             android:enabled="true"
@@ -53,8 +63,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="MainActivity" />
         </activity>
-
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
