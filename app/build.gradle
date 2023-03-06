@@ -98,10 +98,9 @@ dependencies {
     implementation "androidx.work:work-multiprocess:$work_version"
 
 
-    //Oxford step counter
-    implementation 'com.github.Oxford-step-counter:Java-Step-Counter:-SNAPSHOT'
 
-    implementation 'com.github.orangegangsters:sensorstep:1.4.2@aar'
+    // new step counter?
+    implementation 'com.github.orangegangsters:sensorstep:1.4.2'
 
 }
 
