@@ -61,8 +61,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, StepListener {
     /*
-    -listener for screen off to update steps when it comes back on https://stackoverflow.com/questions/4208458/android-notification-of-screen-off-on/4208538#4208538
-    -rewrite permission needs response
+    -Move alarms to Alarm Activity
     */
     private static final int PERMISSIONS_REQUEST_OLDER = 1;
     private static final int PERMISSIONS_REQUEST_NEWER = 2;
@@ -132,6 +131,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private StepDetector stepDetector;
 
 
+    // Broadcast receiver for screen going blank
+    BroadcastReceiver screenReceiver;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +164,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //Get History database ViewModel
         mHistoryViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
 
+        // Screen Receiver
+        screenReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
+                    mStepsText.setText(Integer.toString(mCurrentSteps));
+                }
+
+            }
+        };
+        IntentFilter screenIntent = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        this.registerReceiver(screenReceiver, screenIntent);
 
         //Setup midnight reset Alarm
         Intent alarmIntent = new Intent(this, MidnightResetReceiver.class);
@@ -510,6 +525,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         Log.e("Unreg FenceListen", "Fence not unregistered: " + e);
                     }
                 });
+
+    // Unregister screen receiver
+    this.unregisterReceiver(screenReceiver);
 
     }
 
