@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.util.Log;
@@ -27,6 +28,12 @@ import java.util.Calendar;
 
 //BroadcastReceiver for when the device reboots. Resets alarms and sets up notification channels.
 public class BootReceiver extends BroadcastReceiver {
+
+
+    //SharedPreferences Keys
+    private final String DAILY_KEY = "daily";
+    private final String WEATHER_ALARM_KEY = "weather_alarm";
+    private final String LOCATION_ALARM_KEY = "location_alarm";
 
     //Notification IDs
     private static final String ACTION_BOOT_BROADCAST = BuildConfig.APPLICATION_ID + ".ACTION_BOOT_BROADCAST";
@@ -49,11 +56,16 @@ public class BootReceiver extends BroadcastReceiver {
 
         //If device rebooted, need to setup alarms again
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Log.d("boot reciever", "frired");
+            Log.d("boot receiver", "fired");
             Intent sendingIntent = new Intent();
             sendingIntent.setAction(ACTION_BOOT_BROADCAST);
             LocalBroadcastManager.getInstance(context).sendBroadcast(sendingIntent);
 
+
+        SharedPreferences sp = context.getSharedPreferences("com.example.step_counter", Context.MODE_PRIVATE);
+        boolean dailyWalkFlag = sp.getBoolean(DAILY_KEY,false);
+        boolean weatherWalkFlag = sp.getBoolean(WEATHER_ALARM_KEY, false);
+        boolean locationWalkFlag = sp.getBoolean(LOCATION_ALARM_KEY, false);
 
 
         /*

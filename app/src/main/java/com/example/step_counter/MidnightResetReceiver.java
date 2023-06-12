@@ -38,7 +38,7 @@ public class MidnightResetReceiver extends BroadcastReceiver {
 
         //clear steps from PlayerPrefs
         SharedPreferences.Editor editor = sp.edit();
-        editor.clear();
+        editor.putInt("steps",0);//clear steps
         editor.apply();
 
         //Reset midnight alarm

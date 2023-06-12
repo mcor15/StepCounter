@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         Log.d("MA TT alarm", String.valueOf(c.getTime()));
         //Need to be exact so use setInexactRepeating
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, timePendingIntent);
+       // alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, timePendingIntent);
 
 
 
@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             PendingIntent fencePendingIntent = PendingIntent.getBroadcast(this, FENCE_ID, fenceIntent, PendingIntent.FLAG_UPDATE_CURRENT );
 
             //Setup awareness fence listener
-            Awareness.getFenceClient(this).updateFences(new FenceUpdateRequest.Builder()
+            /*Awareness.getFenceClient(this).updateFences(new FenceUpdateRequest.Builder()
                             .addFence(FENCE_KEY, combinedFence, fencePendingIntent)
                             .build())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         public void onFailure(@NonNull Exception e) {
                             Log.e("fence listener", "Fence could not be registered: " + e);
                         }
-                    });
+                    });*/
         }else{
             //TODO
         }
@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             c.add(Calendar.DATE, 1);
         }
         Log.d("MA WT alarm",String.valueOf(c.getTime()));
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, weatherPendingIntent);
+        //alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, weatherPendingIntent);
 
         //Set to receive midnight broadcasts
         LocalBroadcastManager.getInstance(this).registerReceiver(midnightReceiver,new IntentFilter(ACTION_MIDNIGHT_BROADCAST));
